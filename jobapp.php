@@ -360,7 +360,7 @@ if(isset($_GET['GUID'])){
 										<div class="control-group ">
 											<label class="control-label">CV Content</label>
 											<div class="controls">
-												<textarea name="CV_File_Content" id="CV_File_Content" class="input-xlarge span10" rows="15"><?php echo $CV_File_Content; ?></textarea>
+												<textarea name="CV_File_Content" id="CV_File_Content" class="input-xlarge span12" rows="20"><?php echo $CV_File_Content; ?></textarea>
 												<span>&nbsp;</span>
 											</div>
 										</div>
