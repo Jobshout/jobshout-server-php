@@ -36,6 +36,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 						$Email = $_POST["Email"];
 						$TelephoneMobile = $_POST["TelephoneMobile"];
 						$Comments = addslashes($_POST["Comments"]);
+						$CV_File_Content = addslashes($_POST["CV_File_Content"]);
 						$time = time();
 						
 						$insert=true; 
@@ -45,7 +46,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 					 if(isset($_GET['GUID']))
 					 {
 					
-					$update = $db->query("UPDATE jobapplications SET  Name = '$Name', SiteID='$site_id', Site_GUID='$site_guid', Email = '$Email', TelephoneMobile = '$TelephoneMobile', Comments = '$Comments', Modified = '$time' where  GUID = '".$_GET['GUID']."'");	
+					$update = $db->query("UPDATE jobapplications SET  Name = '$Name', SiteID='$site_id', Site_GUID='$site_guid', Email = '$Email', TelephoneMobile = '$TelephoneMobile', Comments = '$Comments', Modified = '$time', CV_File_Content ='$CV_File_Content' where  GUID = '".$_GET['GUID']."'");	
 					 
 					 
 					 
@@ -78,7 +79,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 		else {
 				//echo "INSERT INTO jobapplications (GUID, SiteID, Name, Email, TelephoneMobile, Comments, created, modified,SourceSite,Free_Text_Search,CV_File_Content,Rank,SourceType)  VALUES ('$GUID', '$site_id', '$Name', '$Email', '$TelephoneMobile', '$Comments', '$time', '$time', '', '', '', '', '')";
 			$GUID=UniqueGuid('jobapplications', 'GUID');	
-			$insert = $db->query("INSERT INTO jobapplications (GUID, SiteID,Site_GUID, Name, Email, TelephoneMobile, Comments, created, modified,SourceSite,Free_Text_Search,CV_File_Content,Rank,SourceType,HomePostcode,SalaryExpectations)  VALUES ('$GUID', '$site_id','$site_guid', '$Name', '$Email', '$TelephoneMobile', '$Comments', '$time', '$time', '', '', '', '', '', '', '')");
+			$insert = $db->query("INSERT INTO jobapplications (GUID, SiteID,Site_GUID, Name, Email, TelephoneMobile, Comments, created, modified,SourceSite,Free_Text_Search,CV_File_Content,Rank,SourceType,HomePostcode,SalaryExpectations)  VALUES ('$GUID', '$site_id','$site_guid', '$Name', '$Email', '$TelephoneMobile', '$Comments', '$time', '$time', '', '', '$CV_File_Content', '', '', '', '')");
 			
 			if($_FILES['fileinput']['size'] > 0)
 								{
@@ -119,7 +120,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 			
 if(isset($_GET['GUID'])){
 
-	 $user3 = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName FROM jobapplications where GUID = '".$_REQUEST['GUID']."'");
+	 $user3 = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content FROM jobapplications where GUID = '".$_REQUEST['GUID']."'");
 	 //$db->debug();
 	 
 	 	$GUID=$user3->GUID;
@@ -129,11 +130,12 @@ if(isset($_GET['GUID'])){
 		$TelephoneMobile=$user3->TelephoneMobile;
 		$Comments=$user3->Comments;
 		$cv_file=$user3->CVFileName;
+		$CV_File_Content=$user3->CV_File_Content;
 		
 	}
 		else
 		  {
-		  
+		  $CV_File_Content='';
 		   $GUID='';
 		   $site_id='';
 		   $Name='';
@@ -189,13 +191,9 @@ if(isset($_GET['GUID'])){
  
 							
                     <div class="row-fluid">
-						<div class="span12">
 							
-							
-							
-							
-							
-									<form name="form1" id="form1" class="form-horizontal form_validation_reg" action="" enctype="multipart/form-data" method="post" >
+								<form name="form1" id="form1" class="form-horizontal form_validation_reg" action="" enctype="multipart/form-data" method="post" >
+									<div class="span4">	
 										<fieldset>
 										
 										
@@ -205,7 +203,7 @@ if(isset($_GET['GUID'])){
 											//$user=$db->get_row("select access_rights_code, uuid from wi_users where code='".$_SESSION['UserEmail']."'");
 											if($user_access_level>=11 && !isset($_SESSION['site_id'])) {
 											?>
-											<div class="control-group formSep">
+											<div class="control-group ">
 												<label class="control-label">Site Name (code)<span class="f_req">*</span></label>
 												<div class="controls">
 												
@@ -274,7 +272,7 @@ if(isset($_GET['GUID'])){
 												if($job_applied_for=$db->get_var("select Document from documents where GUID = '".$chk_applied_for."'"))
 												{
 											?>
-											<div class="control-group formSep">
+											<div class="control-group ">
 												<label class="control-label">Job Applied for</label>
 												<div class="controls text_line">
 													
@@ -290,35 +288,35 @@ if(isset($_GET['GUID'])){
 										?>
 										
 										
-											<div class="control-group formSep">
+											<div class="control-group ">
 												<label class="control-label">Name<span class="f_req">*</span></label>
 												<div class="controls text_line">
-													<input type="hidden" value="<?php if($GUID!='') { echo $GUID; } ?>" name="GUID" id="GUID" >
-													<input type="text"  name="Name" id="Name" class="input-xlarge" value="<?php echo $Name; ?>">
+													<input type="hidden" value="<?php if($GUID!="") { echo $GUID; } ?>" name="GUID" id="GUID" >
+													<input type="text"  name="Name" id="Name" class="input-xlarge span12" value="<?php echo $Name; ?>">
 													<span>&nbsp;</span>
 												</div></div>
 											
 												
 												
-												<div class="control-group formSep">
+												<div class="control-group ">
 												<label class="control-label">Email<span class="f_req">*</span></label>
 												<div class="controls text_line">
 													
-													<input type="text"  name="Email" id="Email" class="input-xlarge" value="<?php echo $Email; ?>">
+													<input type="text"  name="Email" id="Email" class="input-xlarge span12" value="<?php echo $Email; ?>">
 													<span>&nbsp;</span>
 												</div></div>
 												
-												<div class="control-group formSep">
-												<label class="control-label">TelePhone/Mobile<span class="f_req">*</span></label>
+												<div class="control-group ">
+												<label class="control-label">Telephone/Mobile<span class="f_req">*</span></label>
 												<div class="controls text_line">
 													
-													<input type="text"  name="TelephoneMobile" id="TelephoneMobile" class="input-xlarge" value="<?php echo $TelephoneMobile; ?>">
+													<input type="text"  name="TelephoneMobile" id="TelephoneMobile" class="input-xlarge span12" value="<?php echo $TelephoneMobile; ?>">
 													<span>&nbsp;</span>
 												</div></div>
 												
 												<?php if($cv_file!='') { ?>
-									<div class="control-group formSep">
-												<label class="control-label">View current CV</label>
+									<div class="control-group ">
+												<label class="control-label">Download Original CV</label>
 												<div class="controls text_line">
 												
 												<a target="_blank" href="download_cv.php?GUID=<?php echo $_GET['GUID']; ?>" title="Download CV" ><i class="splashy-document_letter"></i><?php echo $cv_file; ?></a>
@@ -326,7 +324,7 @@ if(isset($_GET['GUID'])){
 												<?php } ?>
 												
 													
-												<div class="control-group formSep">
+												<div class="control-group ">
 												<label class="control-label">
 												<?php if(isset($_GET['GUID'])) { ?>
 												Upload new CV
@@ -342,10 +340,10 @@ if(isset($_GET['GUID'])){
 									
 											
 											
-												<div class="control-group formSep">
+												<div class="control-group ">
 												<label for="u_signature" class="control-label">Comments</label>
 												<div class="controls">
-													<textarea rows="4" id="Comments" name="Comments" class="input-xlarge"><?php echo $Comments; ?></textarea>
+													<textarea rows="4" id="Comments" name="Comments" class="input-xlarge span12"><?php echo $Comments; ?></textarea>
 													<span>&nbsp;</span>
 													<span class="help-block">Automatic resize</span>
 												</div>
@@ -353,19 +351,30 @@ if(isset($_GET['GUID'])){
 											
 											
 											
-											
-									<div class="control-group">
-												<div class="controls">
-													<button class="btn btn-gebo" type="submit" name="submit" id="submit">Submit</button>
-												</div>	
-												</div>
+									
 											
 										
 										</fieldset>
-									</form>
-									
-									
-												</div>											
+									</div>
+									<div class="span8">
+										<div class="control-group ">
+											<label class="control-label">CV Content</label>
+											<div class="controls">
+												<textarea name="CV_File_Content" id="CV_File_Content" class="input-xlarge span10" rows="15"><?php echo $CV_File_Content; ?></textarea>
+												<span>&nbsp;</span>
+											</div>
+										</div>
+									</div>
+								<div class="span12">	
+									<div class="control-group">
+										<div style="text-align:center;padding-top: 50px;" class="">
+											<button class="btn btn-gebo" type="submit" name="submit" id="submit">Submit</button>
+										</div>	
+									</div>
+								
+								</div>	
+							</form>
+																	
 												
 					  </div>
 				  </div>
