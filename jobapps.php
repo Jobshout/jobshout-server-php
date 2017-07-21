@@ -1,6 +1,11 @@
 <?php 
 require_once("include/lib.inc.php");
 require_once('include/main-header.php'); ?>
+<style>
+.highlighttxt{
+  background-color: #3993ba;border-radius: 4px;padding: 5px 4px;margin: 2px;color: #fff;                                                                                                     
+ }
+</style>
 	</head>
     <body>
 		<div id="maincontainer" class="clearfix">
@@ -66,6 +71,7 @@ require_once('include/main-header.php'); ?>
 												<th>Last Modified</th>
 												<th>GUID</th>
 												<th>Download CV</th>
+												<th>CV Content</th>
 												<?php if($user_access_level>1) { ?>
 												<th>Edit</th>
 												 <th>Delete</th>
@@ -126,7 +132,7 @@ require_once('include/main-header.php'); ?>
 								//"iDisplayLength": 25,
 								"aLengthMenu": [[10, 25, 50, 100, 150, -1], [10, 25, 50, 100, 150,"All"]],
 								"sPaginationType": "bootstrap",
-								"aaSortingFixed": [[ 5, "desc" ]],
+								"aaSorting": [[ 5, "desc" ]],
 								"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
 								"sAjaxSource": "lib/datatables/server_jobapps.php",
 								<?php if(isset($_GET['job_guid']) && $_GET['job_guid']!='') { ?>
@@ -141,11 +147,10 @@ require_once('include/main-header.php'); ?>
                         { "bSearchable": false, "bVisible": false, "aTargets": [ 6 ] },
 						{  "bSortable":false,  "aTargets": [ 7 ] },
 						<?php if($user_access_level>1) { ?>
-						{ "bSearchable": false, "bSortable":false, "sClass": "center", "aTargets": [ 8 ] },
-						{ "bSearchable": false, "bSortable":false, "sClass": "center", "aTargets": [ 9 ] }
+						{ "bSearchable": false, "bSortable":false, "sClass": "center", "aTargets": [ 9 ] },
+						{ "bSearchable": false, "bSortable":false, "sClass": "center", "aTargets": [ 10 ] }
 						<?php } ?>
                     ],
-								"aaSorting": [[1, 'asc']],
 								"oLanguage": {
       "sInfoFiltered": ""
     }

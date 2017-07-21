@@ -117,36 +117,28 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 	 }
 }		
 
-			
+$CV_File_Content=''; $GUID=''; $site_id=''; $Name='';
+$Email=''; $TelephoneMobile=''; $Comments=''; $cv_file=''; $CV_Extracted_Information="";	
 if(isset($_GET['GUID'])){
-
-	 $user3 = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content FROM jobapplications where GUID = '".$_REQUEST['GUID']."'");
-	 //$db->debug();
-	 
-	 	$GUID=$user3->GUID;
-		$site_id=$user3->SiteID;
-		$Name=$user3->Name;
-		$Email=$user3->Email;
-		$TelephoneMobile=$user3->TelephoneMobile;
-		$Comments=$user3->Comments;
-		$cv_file=$user3->CVFileName;
-		$CV_File_Content=$user3->CV_File_Content;
-		
+	if($jobApplicationDetails = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content, CV_Extracted_Information FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
+	 	$GUID=$jobApplicationDetails->GUID;
+		$site_id=$jobApplicationDetails->SiteID;
+		$Name=$jobApplicationDetails->Name;
+		$Email=$jobApplicationDetails->Email;
+		$TelephoneMobile=$jobApplicationDetails->TelephoneMobile;
+		$Comments=$jobApplicationDetails->Comments;
+		$cv_file=$jobApplicationDetails->CVFileName;
+		$CV_File_Content=$jobApplicationDetails->CV_File_Content;
+		$CV_Extracted_Information=$jobApplicationDetails->CV_Extracted_Information;
 	}
-		else
-		  {
-		  $CV_File_Content='';
-		   $GUID='';
-		   $site_id='';
-		   $Name='';
-		   $Email='';
-		   $TelephoneMobile='';
-		   $Comments='';
-		  	$cv_file='';
-		  }
-
-
- ?>
+}
+?>
+<style>
+.row-fluid {
+width: 99%!important;
+  *zoom: 1;
+ }
+</style>
     </head>
     <body>
 		<div id="maincontainer" class="clearfix">
@@ -180,26 +172,24 @@ if(isset($_GET['GUID'])){
                
                     </nav>
 					 
-					
-					<!--<div><h3 class="heading"><?php //if(isset($_GET['GUID'])) { echo "Update"; } else { echo "Add New"; } ?> Job Application</h3></div>-->
-					<div id="validation" ><span style="color:#00CC00;font-size:18px">
-					<?php if(isset($_SESSION['up_message']) && $_SESSION['up_message']!=''){ echo $_SESSION['up_message']; $_SESSION['up_message']=''; }?>
-					</span></div>
-					<div id="validation" ><span style="color:#FF0000; font-size:18px"><?php if (isset($msg_user)) echo $msg_user; ?></span></div>
+<div class="row-fluid" id="showPrevNext" style="display:none;">
+	<a href="javascript:void(0)" style="float:left" id="prevBtn" title="Previous Application"><img src="img/previous.png" alt="< Previous"/></a>
+	<a href="javascript:void(0)" style="float:right" id="nextBtn"  title="Next Application"><img src="img/next.png" alt="Next >"/></a>
+</div>					
+					<?php if(isset($_SESSION['up_message']) && $_SESSION['up_message']!=''){	?>
 					<br/>
- 
- 
-							
+					<div id="validation" ><span style="color:#00CC00;font-size:18px">
+					<?php  echo $_SESSION['up_message']; $_SESSION['up_message']=''; ?>
+					</span></div>
+					<br/>
+					<?php } ?>
+ 						
                     <div class="row-fluid">
 							
 								<form name="form1" id="form1" class="form-horizontal form_validation_reg" action="" enctype="multipart/form-data" method="post" >
 									<div class="span4">	
 										<fieldset>
-										
-										
-									
-										
-										<?php
+											<?php
 											//$user=$db->get_row("select access_rights_code, uuid from wi_users where code='".$_SESSION['UserEmail']."'");
 											if($user_access_level>=11 && !isset($_SESSION['site_id'])) {
 											?>
@@ -343,7 +333,7 @@ if(isset($_GET['GUID'])){
 												<div class="control-group ">
 												<label for="u_signature" class="control-label">Comments</label>
 												<div class="controls">
-													<textarea rows="4" id="Comments" name="Comments" class="input-xlarge span12"><?php echo $Comments; ?></textarea>
+													<textarea rows="10" id="Comments" name="Comments" class="input-xlarge span12"><?php echo $Comments; ?></textarea>
 													<span>&nbsp;</span>
 													<span class="help-block">Automatic resize</span>
 												</div>
@@ -356,15 +346,39 @@ if(isset($_GET['GUID'])){
 										
 										</fieldset>
 									</div>
-									<div class="span8">
-										<div class="control-group ">
-											<label class="control-label">CV Content</label>
-											<div class="controls">
-												<textarea name="CV_File_Content" id="CV_File_Content" class="input-xlarge span12" rows="20"><?php echo $CV_File_Content; ?></textarea>
-												<span>&nbsp;</span>
+									<?php if($GUID!="") {	?>
+									<div class="span7" style="float:right;">
+										
+										<div class="tabbable">
+											<ul class="nav nav-tabs">
+												<li id="li1" class="active"><a href="#tab1" data-toggle="tab">CV Preview</a></li>
+												<li id="li2"><a href="#tab2" data-toggle="tab">CV Extracted Information</a></li>
+												<li id="li3"><a href="#tab3" data-toggle="tab">CV Content</a></li>
+											</ul>
+											<div class="tab-content">
+												<div class="tab-pane active" id="tab1">
+													<div class="row-fluid">
+                        								<div class="span12">
+                        								<?php
+                        									echo "<iframe src=\"preview_cv.php?GUID=".$GUID."\" width=\"98%\" style=\"height:500px;\"></iframe>";
+                        								?>
+                        								</div>
+                        							</div>
+												</div>
+												<div class="tab-pane" id="tab2">
+													
+												</div>
+												<div class="tab-pane" id="tab3">
+													<div class="row-fluid">
+                        								<div class="span12">
+															<textarea name="CV_File_Content" id="CV_File_Content" class="input-xlarge span12" rows="20"><?php echo $CV_File_Content; ?></textarea>
+														</div>
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>
+									<?php } ?>
 								<div class="span12">	
 									<div class="control-group">
 										<div style="text-align:center;padding-top: 50px;" class="">
@@ -392,13 +406,23 @@ if(isset($_GET['GUID'])){
           
 			  <!-- datepicker -->
             <script src="lib/datepicker/bootstrap-datepicker.min.js"></script>
-		           
-           
-			
-			  <script type="text/javascript">
-			$(document).ready(function(){
-				
-				//* regular validation
+		    <script type="text/javascript">
+var nextLink='', previousLink='';
+$(document).keydown(function(e){
+    if (e.keyCode == 37) { 
+    	if(previousLink!=""){
+    		window.location.href=previousLink;
+    	}
+    }if (e.keyCode == 39) { 
+       if(nextLink!=""){
+    		window.location.href=nextLink;
+    	}
+    }
+});				$(document).ready(function(){
+					fetch_nex_previous();
+					drawExtractedInfo();
+					
+					//* regular validation
 					gebo_validation.reg();
 					
 					$.validator.addMethod("isemail", 
@@ -407,7 +431,7 @@ if(isset($_GET['GUID'])){
   								return regex.test(value);
                            }, 
                            "Not a valid email"    ); 
-			});
+				});
 					
 			
 			//* validation
@@ -446,6 +470,67 @@ if(isset($_GET['GUID'])){
 						
 					}
 				};
+function drawExtractedInfo(){
+	var infoStr= '<?php echo $CV_Extracted_Information;?>', tableContent="";
+	if(infoStr!=""){
+		tableContent+="<table class='table table-striped table-bordered dataTable no-footer'>";
+		tableContent+="<th>Key</th><th>Value</th>";
+			
+		var infoObj = JSON.parse(infoStr); 
+		$.each(infoObj, function(index,row){
+			tableContent+="<tr><td>"+index+"</td><td>"+row+"</td></tr>";
+		});
+		tableContent+="</table>";
+	}	else {
+		tableContent+="<div class='alert alert-danger'>Sorry, no information extracted from CV.</div>";
+	}
+	$("#tab2").html(tableContent);
+}
+function fetch_nex_previous(){
+	var oSearch='', currentPage= '<?php echo $GUID; ?>';
+	if(currentPage!=""){
+		<?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications']) && isset($_SESSION['last_search']['jobapplications']['sSearch'])) { ?>
+			oSearch= "<?php  echo $_SESSION['last_search']['jobapplications']['sSearch'];  ?>";
+		<?php } ?>
+		var iDisplayLength= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications']) && isset($_SESSION['last_search']['jobapplications']['iDisplayLength'])) { echo $_SESSION['last_search']['jobapplications']['iDisplayLength']; } else { echo '25'; } ?>;
+		var iDisplayStart= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications']) && isset($_SESSION['last_search']['jobapplications']['iDisplayStart'])) { echo $_SESSION['last_search']['jobapplications']['iDisplayStart']; } else { echo '0'; } ?>;
+								
+		var jsonRow="lib/datatables/server_jobapps.php?repeatQuery=yes&sSearch="+oSearch+"&iDisplayStart="+iDisplayStart+"&iDisplayLength="+iDisplayLength;
+		$.getJSON(jsonRow,function(response){
+			if(response.aaData && response.aaData.length>0){
+				var createUUIDArr= new Array();
+				$.each(response.aaData, function(i,row){
+					createUUIDArr.push(row[6]);
+				});
+				var totalArrCount=(createUUIDArr.length)-1;
+				var foundPosInArr=createUUIDArr.indexOf(currentPage);
+				if(foundPosInArr==-1){
+					$("#showPrevNext").hide();
+				} else{
+					$("#showPrevNext").show();
+					if(foundPosInArr==totalArrCount){
+						previousLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr-1];
+						nextLink="";
+						
+						$('#prevBtn').attr("href", previousLink);
+						$('#nextBtn').attr("disabled", "disabled");
+					}else if(foundPosInArr==0){
+						previousLink="";
+						nextLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr+1];
+						
+						$('#nextBtn').attr("href", nextLink);
+						$('#prevBtn').attr("disabled", "disabled");
+					}else if(foundPosInArr<totalArrCount){
+						previousLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr-1];
+						nextLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr+1];
+						$('#prevBtn').attr("href", previousLink);
+						$('#nextBtn').attr("href", nextLink);						
+					}
+				}				
+			}
+		});
+	}
+}
 			</script>
             
 		</div>

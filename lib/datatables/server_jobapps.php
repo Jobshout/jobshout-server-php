@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL ^ E_DEPRECATED);
+date_default_timezone_set("Europe/London");
 require_once("lib.inc.php");
 	
 	//set session values
@@ -15,9 +19,9 @@ require_once("lib.inc.php");
 	/* Array of database columns which should be read and sent back to DataTables. Use a space where
 	 * you want to insert a non-database field (for example a counter or static image)
 	 */
-	 $aColumns = array('jobapplications.ID','sites.Name as SiteName','jobapplications.Name','jobapplications.Email','jobapplications.TelephoneMobile','jobapplications.Modified','jobapplications.GUID','jobapplications.CVFileName');
+	$aColumns = array('jobapplications.ID','sites.Name as SiteName','jobapplications.Name','jobapplications.Email','jobapplications.TelephoneMobile','jobapplications.Modified','jobapplications.GUID','jobapplications.CVFileName', 'jobapplications.CV_File_Content');
 	 
-	$aColumns1 = array('ID','SiteName','Name','Email','TelephoneMobile','Modified','GUID','CVFileName');
+	$aColumns1 = array('ID','SiteName','Name','Email','TelephoneMobile','Modified','GUID','CVFileName', 'CV_File_Content');
 	
 	/* Indexed column (used for fast and accurate table cardinality) */
 	$sIndexColumn = "jobapplications.GUID";
@@ -29,8 +33,6 @@ require_once("lib.inc.php");
 	else{	
 		$sTable = "jobapplications left outer join sites on jobapplications.SiteID=sites.ID";
 	 }
-	
-	
 	
 	/* 
 	 * Paging
@@ -97,11 +99,29 @@ require_once("lib.inc.php");
 			$srch_col=$aColumns[$i];
 			if($srch_col=='sites.Name as SiteName') {
 				$srch_col='sites.Name';
+			}else if($srch_col=="jobapplications.CV_File_Content"){
+				
 			}
 			$sWhere .= $srch_col." LIKE '%".mysql_real_escape_string( $_GET['sSearch'] )."%' OR ";
 		}
 		$sWhere = substr_replace( $sWhere, "", -3 );
 		$sWhere .= ')';
+		
+		// to apply free text search on CV_File_Content
+		$sWhere .= " and ";
+		$keyArrStr = explode(' ',$_GET['sSearch']);
+		$keyArrStr = array_unique($keyArrStr);
+
+        $findStr="";
+        $totalSearchTagsNum=count($keyArrStr);
+        for($n=0;$n<$totalSearchTagsNum;$n++){
+        	if($findStr!=""){
+                $findStr.=' +"'.$keyArrStr[$n].'"';
+            }else{
+                $findStr.='+"'.$keyArrStr[$n].'"';
+            }
+        }
+        $sWhere .= " MATCH(jobapplications.CV_File_Content) AGAINST('".$findStr."' IN BOOLEAN MODE) ";
 	}
 	
 	/* Individual column filtering */
@@ -126,14 +146,25 @@ require_once("lib.inc.php");
 	 * SQL queries
 	 * Get data to display
 	 */
-	$sQuery = "
-		SELECT SQL_CALC_FOUND_ROWS ".str_replace(" , ", " ", implode(", ", $aColumns))."
-		FROM   $sTable
-		$sWhere
-		$sOrder
-		$sLimit
-	";
-	// echo $sQuery;
+	 $sQuery="";
+	if( isset($_GET['repeatQuery']) && $_GET['repeatQuery'] == "yes" ){
+		if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['sQuery'])) { 
+			$sQuery=  $_SESSION['last_search']['jobapplications_query']['sQuery'];
+		}
+	}
+	
+	if($sQuery==""){
+		$sQuery = "
+			SELECT SQL_CALC_FOUND_ROWS ".str_replace(" , ", " ", implode(", ", $aColumns))."
+			FROM   $sTable
+			$sWhere
+			$sOrder
+			$sLimit
+		";
+		set_session_query('jobapplications_query',$sQuery, $sOrder);
+	}
+	//echo $sQuery; $exit;
+	
 	$rResult = mysql_query( $sQuery, $gaSql['link'] ) or die(mysql_error());
 	
 	/* Data set length after filtering */
@@ -157,8 +188,12 @@ require_once("lib.inc.php");
 	/*
 	 * Output
 	 */
+	 $sEcho= 0;
+	if(isset($_GET['sEcho']) && $_GET['sEcho']!=""){
+	 	$sEcho=$_GET['sEcho'];
+	}
 	$output = array(
-		"Echo" => intval($_GET['sEcho']),
+		"Echo" => intval($sEcho),
 		"iTotalRecords" => $iTotal,
 		"iTotalDisplayRecords" => $iFilteredTotal,
 		"aaData" => array()
@@ -196,8 +231,7 @@ require_once("lib.inc.php");
 				$row[] = $date.','.$time_string;
 				//$row[] = Date('d M Y', $aRow[ $aColumns1[$i] ] );
             }
-			
-			elseif ($aColumns1[$i] == "CVFileName") {
+            elseif ($aColumns1[$i] == "CVFileName") {
 				if($aRow[ $aColumns1[$i] ]!='') {
 					$row[] = '<a target="_blank" href="download_cv.php?GUID='.$curr_id.'" title="Download CV" ><i class="splashy-document_letter"></i> '.$aRow[ $aColumns1[$i] ].'<a>';
 				}
@@ -206,10 +240,49 @@ require_once("lib.inc.php");
 				}
             }
 			
+			 elseif ($aColumns1[$i] == "CV_File_Content") {
+                          if($aRow[ $aColumns1[$i] ]!="") {
+                          	if(strlen($aRow[ $aColumns1[$i] ])>250){
+								$tempStr=substr($aRow[ $aColumns1[$i] ],0,250)."...";
+							}else{
+								$tempStr= $aRow[ $aColumns1[$i] ];
+							}
+                            
+                            if ( isset($_GET['sSearch']) && $_GET['sSearch'] != "" )
+                              {
+                                $searchStr=$_GET['sSearch'];
+                                $replaceStr='<span CLASS="highlighttxt" >'.$_GET['sSearch'].'</span>';
+                                $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+
+                                $searchStr=strtolower($_GET['sSearch']);
+                                $replaceStr='<span CLASS="highlighttxt" >'.strtolower($_GET['sSearch']).'</span>';
+                                $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+
+                              }
+                            $row[] = $tempStr;
+                          }
+                          else {
+                            $row[] = '';
+                          }
+                        }
 			else
 			{
 				/* General output */
-				$row[] = iconv("UTF-8", "ISO-8859-1//IGNORE",$aRow[ $aColumns1[$i] ]);
+				 $tempStr=$aRow[ $aColumns1[$i] ];
+                          if ( isset($_GET['sSearch']) && $_GET['sSearch'] != "" )
+                            {
+                              $searchStr=$_GET['sSearch'];
+                              $replaceStr='<span CLASS="highlighttxt" >'.$_GET['sSearch'].'</span>';
+                              $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+
+                              $searchStr=strtolower($_GET['sSearch']);
+                              $replaceStr='<span CLASS="highlighttxt" >'.strtolower($_GET['sSearch']).'</span>';
+                              $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+
+
+                            }
+
+                                $row[] = iconv("UTF-8", "ISO-8859-1//IGNORE",$tempStr);
 			}
 		}
 		
