@@ -378,7 +378,7 @@ width: 99%!important;
                         											$tempLink="preview_cv.php?GUID=".$GUID;
                         										}	else {
                         											$domainName=$_SERVER['HTTP_HOST'];
-                        											$domainName="www.cvscreen.co.uk";
+                        											//$domainName="www.cvscreen.co.uk";
                         											$tempLink="https://docs.google.com/viewer?embedded=true&url=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID;
                         										}
                         										echo "<iframe src=\"".$tempLink."&token=".$newTokenGUIDStr."\" width=\"98%\" style=\"height:1000px;\"></iframe>";
