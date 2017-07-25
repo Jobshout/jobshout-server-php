@@ -15,13 +15,13 @@ else{
 }
 
 $db_user="root";
-// $db = new ezSQL_mysql('root','SanJose^D','jobshout_live','pma26.tenthmatrix.co.uk');
+
 if($connect_to=="Staging"){
-		$db_host='localghost';
+	$db_host='localghost';
 	$db_name='db';
 	$db_pass='pass';
 	$history_db_name='db_history';
-
+}
 elseif($connect_to=="Live"){
 	
 	$db_host='localghost';

@@ -217,6 +217,9 @@
 					if(ele_select.attr('id')=='uk_towns_cities'){
 						fetchuktownsdetails();
 					}
+					if(ele_select.attr('id')=='location'){
+						$('#job_apps').DataTable().ajax.reload();
+					}
 				},
 
 				autocompletechange: "_removeIfInvalid"
@@ -285,7 +288,9 @@
 				else if(ele_select.attr('id')=='uk_towns_cities'){
 				var jsonRow = 'uktownsautocomplete.php?term='+request.term;
 				}
-
+				else if(ele_select.attr('id')=='location'){
+				var jsonRow = 'uktownsautocomplete.php?term='+request.term;
+				}
 				//alert(jsonRowURLStr);
 				if(xhr) xhr.abort();
 				xhr=$.getJSON(jsonRow,function(result){
@@ -312,6 +317,8 @@
 							html += '<option value="'+item.guid+'">'+item.value+'</option>';
 						}else if(ele_select.attr('id')=='uk_towns_cities'){
 							html += '<option value="'+item.value+'">'+item.name+'</option>';
+						}else if(ele_select.attr('id')=='location' && item.postcode!=""){
+							html += '<option value="'+item.postcode+'">'+item.name+'</option>';
 						}
 						else{
 							html += '<option value="'+item.id+'">'+item.value+'</option>';
@@ -357,6 +364,9 @@
 						this.selected = valid = true;	
 						if(ele_select.attr('id')=='uk_towns_cities'){
 							fetchuktownsdetails();
+						}
+						if(ele_select.attr('id')=='location'){
+							$('#job_apps').DataTable().ajax.reload();
 						}
 						ele_select.trigger('change');
 

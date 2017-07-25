@@ -118,9 +118,9 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 }		
 
 $CV_File_Content=''; $GUID=''; $site_id=''; $Name='';
-$Email=''; $TelephoneMobile=''; $Comments=''; $cv_file=''; $CV_Extracted_Information="";	
-if(isset($_GET['GUID'])){
-	if($jobApplicationDetails = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content, CV_Extracted_Information FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
+$Email=''; $TelephoneMobile=''; $Comments=''; $cv_file=''; $CV_Extracted_Information=""; $CVFileType="";	
+if(isset($_GET['GUID']) && $_GET['GUID']!=""){
+	if($jobApplicationDetails = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content, CV_Extracted_Information, CVFileType FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
 	 	$GUID=$jobApplicationDetails->GUID;
 		$site_id=$jobApplicationDetails->SiteID;
 		$Name=$jobApplicationDetails->Name;
@@ -130,6 +130,7 @@ if(isset($_GET['GUID'])){
 		$cv_file=$jobApplicationDetails->CVFileName;
 		$CV_File_Content=$jobApplicationDetails->CV_File_Content;
 		$CV_Extracted_Information=$jobApplicationDetails->CV_Extracted_Information;
+		$CVFileType=$jobApplicationDetails->CVFileType;
 	}
 }
 ?>
@@ -167,15 +168,20 @@ width: 99%!important;
 		</li>
 		
 		<?php include_once("include/curr_selection.php"); ?>
+	
 	</ul>
+	<div id="showPrevNext" style="display:none;float: right;position: relative;bottom: 21px;">
+			<a href="javascript:void(0)" style="float:left" id="prevBtn" title="Previous"><img src="img/previous.png" alt="< Previous" width="30"/></a>
+			<a href="javascript:void(0)" style="float:right" id="nextBtn"  title="Next" ><img src="img/next.png" alt="Next >" width="30" style="padding-left:5px;"/></a>
+		</div>
 </div>
                
                     </nav>
-					 
+<!--				 
 <div class="row-fluid" id="showPrevNext" style="display:none;">
 	<a href="javascript:void(0)" style="float:left" id="prevBtn" title="Previous Application"><img src="img/previous.png" alt="< Previous"/></a>
 	<a href="javascript:void(0)" style="float:right" id="nextBtn"  title="Next Application"><img src="img/next.png" alt="Next >"/></a>
-</div>					
+</div>-->					
 					<?php if(isset($_SESSION['up_message']) && $_SESSION['up_message']!=''){	?>
 					<br/>
 					<div id="validation" ><span style="color:#00CC00;font-size:18px">
@@ -340,7 +346,11 @@ width: 99%!important;
 											</div>
 											
 											
-											
+											<div class="control-group">
+										<div style="text-align:center;" class="">
+											<button class="btn btn-gebo" type="submit" name="submit" id="submit">Submit</button>
+										</div>	
+									</div>
 									
 											
 										
@@ -360,7 +370,19 @@ width: 99%!important;
 													<div class="row-fluid">
                         								<div class="span12">
                         								<?php
-                        									echo "<iframe src=\"preview_cv.php?GUID=".$GUID."\" width=\"98%\" style=\"height:500px;\"></iframe>";
+                        									$newTokenGUIDStr = UniqueGuid('authenticate_tokens', 'guid');
+															$db->query('SET NAMES utf8');
+															$timeStampNum= time();
+															if($db->query("INSERT INTO authenticate_tokens (ID, guid, timestamp) VALUES(NULL, '$newTokenGUIDStr', '$timeStampNum')"))	{
+                        										if($CVFileType=="application/pdf") {
+                        											$tempLink="preview_cv.php?GUID=".$GUID;
+                        										}	else {
+                        											$domainName=$_SERVER['HTTP_HOST'];
+                        											$domainName="www.cvscreen.co.uk";
+                        											$tempLink="https://docs.google.com/viewer?embedded=true&url=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID;
+                        										}
+                        										echo "<iframe src=\"".$tempLink."&token=".$newTokenGUIDStr."\" width=\"98%\" style=\"height:1000px;\"></iframe>";
+                        									}
                         								?>
                         								</div>
                         							</div>
@@ -379,14 +401,7 @@ width: 99%!important;
 										</div>
 									</div>
 									<?php } ?>
-								<div class="span12">	
-									<div class="control-group">
-										<div style="text-align:center;padding-top: 50px;" class="">
-											<button class="btn btn-gebo" type="submit" name="submit" id="submit">Submit</button>
-										</div>	
-									</div>
 								
-								</div>	
 							</form>
 																	
 												
@@ -502,29 +517,36 @@ function fetch_nex_previous(){
 				$.each(response.aaData, function(i,row){
 					createUUIDArr.push(row[6]);
 				});
+				console.log(createUUIDArr)
 				var totalArrCount=(createUUIDArr.length)-1;
 				var foundPosInArr=createUUIDArr.indexOf(currentPage);
 				if(foundPosInArr==-1){
 					$("#showPrevNext").hide();
 				} else{
 					$("#showPrevNext").show();
-					if(foundPosInArr==totalArrCount){
-						previousLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr-1];
-						nextLink="";
-						
-						$('#prevBtn').attr("href", previousLink);
-						$('#nextBtn').attr("disabled", "disabled");
-					}else if(foundPosInArr==0){
-						previousLink="";
-						nextLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr+1];
-						
-						$('#nextBtn').attr("href", nextLink);
-						$('#prevBtn').attr("disabled", "disabled");
+					if(foundPosInArr==0){
+						if(totalArrCount>0){
+							previousLink="";
+							nextLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr+1];
+						}
+					}else if(foundPosInArr==totalArrCount){
+						if(totalArrCount>0){
+							previousLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr-1];
+							nextLink="";
+						}
 					}else if(foundPosInArr<totalArrCount){
 						previousLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr-1];
 						nextLink="jobapp.php?GUID="+createUUIDArr[foundPosInArr+1];
-						$('#prevBtn').attr("href", previousLink);
-						$('#nextBtn').attr("href", nextLink);						
+					}
+					if(previousLink!=""){
+						$('#prevBtn').attr("href", previousLink);	$('#prevBtn').show();
+					}else{
+						$('#prevBtn').attr("disabled", "disabled");	$('#prevBtn').hide();
+					}
+					if(nextLink!=""){
+						$('#nextBtn').attr("href", nextLink);	$('#nextBtn').show();
+					}else{
+						$('#nextBtn').attr("disabled", "disabled");	$('#nextBtn').hide();
 					}
 				}				
 			}

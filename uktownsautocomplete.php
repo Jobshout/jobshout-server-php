@@ -117,10 +117,13 @@ if($term!=""){
 		foreach($resultData as $row){
 			$subArr=array();
 			$outputVal=$row->name;
+			$postcode ='';
 			if(isset($row->postcode) && $row->postcode!=""){
 				$outputVal.=" (".$row->postcode.")";
+				$postcode = $row->postcode;
 			}
 			$subArr['value']=$row->GUID;
+			$subArr['postcode']=$postcode;
 			$subArr['name']=$outputVal;
 			$output[]=$subArr;
 			

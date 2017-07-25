@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL ^ E_DEPRECATED);
-date_default_timezone_set("Europe/London");
 require_once("lib.inc.php");
 	
 	//set session values
@@ -105,10 +101,9 @@ require_once("lib.inc.php");
 			$sWhere .= $srch_col." LIKE '%".mysql_real_escape_string( $_GET['sSearch'] )."%' OR ";
 		}
 		$sWhere = substr_replace( $sWhere, "", -3 );
-		$sWhere .= ')';
 		
 		// to apply free text search on CV_File_Content
-		$sWhere .= " and ";
+		$sWhere .= " or ";
 		$keyArrStr = explode(' ',$_GET['sSearch']);
 		$keyArrStr = array_unique($keyArrStr);
 
@@ -122,6 +117,7 @@ require_once("lib.inc.php");
             }
         }
         $sWhere .= " MATCH(jobapplications.CV_File_Content) AGAINST('".$findStr."' IN BOOLEAN MODE) ";
+        $sWhere .= ')';
 	}
 	
 	/* Individual column filtering */
@@ -140,7 +136,41 @@ require_once("lib.inc.php");
 			$sWhere .= $aColumns[$i]." LIKE '%".mysql_real_escape_string($_GET['sSearch_'.$i])."%' ";
 		}
 	}
+	$latitude=''; $longitude="";
 	
+	if(isset($_REQUEST['location']) && $_REQUEST['location']<>'' && $_REQUEST['location']<>'null'){
+        $loc_str=addslashes($_REQUEST['location']);
+        if(isset($_REQUEST['radius']) && $_REQUEST['radius']<>'' && $_REQUEST['radius']<>'0'){
+        	$radius=$_REQUEST['radius'];
+        	
+
+            $subQuery="SELECT * FROM uk_towns_cities Where postcode='".$_REQUEST['location']."' ";
+			$executeSubQuery = mysql_query( $subQuery, $gaSql['link'] ) or die(mysql_error());
+			if(mysql_num_rows($executeSubQuery)!=0){
+				$query_row = mysql_fetch_array($executeSubQuery);
+			
+            	$latitude=$query_row['lat'];
+                $longitude=$query_row['lng'];
+        	}
+        	if(isset($latitude) && $latitude!="" && isset($longitude) && $longitude!=""){
+        		$findAllPostcodeQuery = "SELECT postcode, ( 3959 * acos( cos( radians(".$latitude.") ) * cos( radians( lat ) ) * cos( radians( lng ) - radians(".$longitude.") ) + sin( radians(".$latitude.") ) * sin( radians( lat ) ) ) ) AS distance FROM uk_towns_cities WHERE postcode<>'' HAVING distance < $radius";
+                $executePostcodeQuery = mysql_query( $findAllPostcodeQuery, $gaSql['link'] ) or die(mysql_error());
+				$inClauseStr="";
+				if(mysql_num_rows($executePostcodeQuery)!=0) {
+    				while($rowData = mysql_fetch_array($executePostcodeQuery)) {
+    					if($inClauseStr!=""){
+    						$inClauseStr.= ", '".$rowData['postcode']."'";
+    					}else{
+    						$inClauseStr.= "'".$rowData['postcode']."'";
+    					}
+    				}
+    			}
+				$sWhere .= " and (jobapplications.HomePostcode IN (".$inClauseStr."))";                   
+        	}
+        }	else	{
+        	$sWhere .= " and (jobapplications.HomePostcode='".$loc_str."')";
+        }
+    }
 	
 	/*
 	 * SQL queries
@@ -163,7 +193,7 @@ require_once("lib.inc.php");
 		";
 		set_session_query('jobapplications_query',$sQuery, $sOrder);
 	}
-	//echo $sQuery; $exit;
+	//echo $sQuery; exit;
 	
 	$rResult = mysql_query( $sQuery, $gaSql['link'] ) or die(mysql_error());
 	
@@ -250,13 +280,15 @@ require_once("lib.inc.php");
                             
                             if ( isset($_GET['sSearch']) && $_GET['sSearch'] != "" )
                               {
-                                $searchStr=$_GET['sSearch'];
-                                $replaceStr='<span CLASS="highlighttxt" >'.$_GET['sSearch'].'</span>';
-                                $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+                               
+                                $keyArrStr = explode(' ',$_GET['sSearch']);
+								$keyArrStr = array_unique($keyArrStr);
 
-                                $searchStr=strtolower($_GET['sSearch']);
-                                $replaceStr='<span CLASS="highlighttxt" >'.strtolower($_GET['sSearch']).'</span>';
-                                $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+        						for($n=0;$n<count($keyArrStr);$n++){
+        							$searchStr=$keyArrStr[$n];
+        							$replaceStr='<span CLASS="highlighttxt" >'.$keyArrStr[$n].'</span>';
+                                	$tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+								}
 
                               }
                             $row[] = $tempStr;
@@ -271,26 +303,21 @@ require_once("lib.inc.php");
 				 $tempStr=$aRow[ $aColumns1[$i] ];
                           if ( isset($_GET['sSearch']) && $_GET['sSearch'] != "" )
                             {
-                              $searchStr=$_GET['sSearch'];
-                              $replaceStr='<span CLASS="highlighttxt" >'.$_GET['sSearch'].'</span>';
-                              $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+                            	$keyArrStr = explode(' ',$_GET['sSearch']);
+								$keyArrStr = array_unique($keyArrStr);
 
-                              $searchStr=strtolower($_GET['sSearch']);
-                              $replaceStr='<span CLASS="highlighttxt" >'.strtolower($_GET['sSearch']).'</span>';
-                              $tempStr=str_replace($searchStr,$replaceStr,$tempStr);
-
-
-                            }
-
-                                $row[] = iconv("UTF-8", "ISO-8859-1//IGNORE",$tempStr);
+        						for($n=0;$n<count($keyArrStr);$n++){
+        							$searchStr=$keyArrStr[$n];
+        							$replaceStr='<span CLASS="highlighttxt" >'.$keyArrStr[$n].'</span>';
+                                	$tempStr=str_replace($searchStr,$replaceStr,$tempStr);
+								}
+							}
+						$row[] = iconv("UTF-8", "ISO-8859-1//IGNORE",$tempStr);
 			}
 		}
-		
-		
-if($user_access_level>1) {
-		
-		$row[] = '<a href="jobapp.php?GUID='.$curr_id.'" title="Edit this job application" ><i class="splashy-pencil"></i><a>';
-		$row[]= '<a href="delete-jobapp.php?GUID='.$curr_id.'" title="Delete this job application" onClick="return confirm(\'Are you sure to delete\');"><i class="splashy-remove"></i><a>';
+		if($user_access_level>1) {
+			$row[] = '<input type="hidden" class="list_guids" value="'.$curr_id.'"><a href="jobapp.php?GUID='.$curr_id.'" title="Edit this job application" ><i class="splashy-pencil"></i></a>';
+			$row[]= '<a href="delete-jobapp.php?GUID='.$curr_id.'" title="Delete this job application" onClick="return confirm(\'Are you sure to delete\');"><i class="splashy-remove"></i></a>';
 		}
 		
 
