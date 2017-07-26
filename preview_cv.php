@@ -44,14 +44,14 @@ function return_json_from_csv($fileNameStr){
 	return json_encode($outputJson);
 }
 
-if(isset($_GET['GUID']) && $_GET['GUID']!="" && isset($_GET['token']) && $_GET['token']!=""){
+if( (isset($_GET['GUID'])) && ($_GET['GUID'] != "") && (isset($_GET['token'])) && ($_GET['token'] != "") ){
 	// added security for authentication
 	$authenticatePage = $db->get_var("SELECT count(*) as num FROM authenticate_tokens where guid = '".$_REQUEST['token']."'");
 	if($authenticatePage>=1){
 		if($fileContent = $db->get_row("SELECT CVFileName, zCV, CVFileType, CV_Extracted_Information FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
 			$cv_file=$fileContent->CVFileName;
 			$CVFileType=$fileContent->CVFileType;
-			
+			//PDF type file extract python script
 			if($CVFileType=="application/pdf" && $fileContent->CV_Extracted_Information==""){
 				array_map('unlink', glob(DATAINPUTPATH."/*"));	//remove all the files in input directory
 				$outputPathStr=DATAINPUTPATH."/".$_REQUEST['GUID'].".pdf";
@@ -88,6 +88,39 @@ if(isset($_GET['GUID']) && $_GET['GUID']!="" && isset($_GET['token']) && $_GET['
     				$db->query("delete from authenticate_tokens where guid = '".$_REQUEST['token']."'");
     			}
 			}
+			
+			//DOC/DOCSX type file extract python script
+			if( ($CVFileType=="application/vnd.openxmlformats-officedocument.wordprocessingml.document" || $CVFileType=="application/msword") && $fileContent->CV_Extracted_Information==""){
+
+				$extension = pathinfo($cv_file, PATHINFO_EXTENSION);
+				$docFileInPathStr=PYTHON_DOCX_PATH.$_REQUEST['GUID'].".".$extension;
+				$docFileTxtInPathStr=PYTHON_DOCX_PATH.$_REQUEST['GUID'].".txt";
+    			@unlink($docFileInPathStr);	// remove cv if already exists
+    			file_put_contents($docFileInPathStr,$fileContent->zCV);
+    			
+    			@unlink($docFileTxtInPathStr);	// remove cv extracted file if exists
+
+    			$commandStr = PYTHON_DOCX_CMD." '".$docFileInPathStr."' '".$docFileTxtInPathStr ."'";
+
+    			exec ( $commandStr );
+   				$get_cv_content = file_get_contents($docFileTxtInPathStr);
+				$getPostCode=fetch_postcode($get_cv_content);
+	
+    			//save the csv data in db                                                                                                                                                                                                                                    
+   				$CV_File_Content = addslashes($get_cv_content);
+				$CV_Extracted_Information =  $CV_File_Content;
+    			$formqueryStr="update jobapplications set CV_File_Content='$CV_File_Content', CV_Extracted_Information='$CV_Extracted_Information' ";
+    			if($getPostCode!="")	{
+    				$formqueryStr.=", HomePostcode='$getPostCode' ";
+    			}
+    			$formqueryStr.=" where  GUID = '".$_GET['GUID']."'";
+    			$db->query($formqueryStr);
+    			
+    			if($delete_auth_token_right_now_bool==true || $delete_auth_token_right_now_bool=="true"){
+    				$db->query("delete from authenticate_tokens where guid = '".$_REQUEST['token']."'");
+    			}
+			}
+			
 	 		header("Content-type: $CVFileType");
        	 	echo $fileContent->zCV;
 		}

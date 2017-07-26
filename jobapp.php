@@ -377,18 +377,18 @@ width: 99%!important;
 													<div class="row-fluid">
                         								<div class="span12">
                         								<?php
-                        									$newTokenGUIDStr = UniqueGuid('authenticate_tokens', 'guid');
-															$db->query('SET NAMES utf8');
-															$timeStampNum= time();
-															if($db->query("INSERT INTO authenticate_tokens (ID, guid, timestamp) VALUES(NULL, '$newTokenGUIDStr', '$timeStampNum')"))	{
-                        										if($CVFileType=="application/pdf") {
-                        											$tempLink="preview_cv.php?GUID=".$GUID;
-                        										}	else {
-                        											$domainName=$_SERVER['HTTP_HOST'];
-                        											$tempLink="https://docs.google.com/viewer?embedded=true&url=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID;
-                        										}
-                        										echo "<iframe src=\"".$tempLink."&token=".$newTokenGUIDStr."\" width=\"98%\" style=\"height:1000px;\"></iframe>";
-                        									}
+                                                                                                $newTokenGUIDStr = UniqueGuid('authenticate_tokens', 'guid');
+                                                                                                                        $db->query('SET NAMES utf8');
+                                                                                                                        $timeStampNum= time();
+                                                                                                                        if($db->query("INSERT INTO authenticate_tokens (ID, guid, timestamp) VALUES(NULL, '$newTokenGUIDStr', '$timeStampNum')"))       {
+                                                                                                        if($CVFileType=="application/pdf") {
+                                                                                                                $tempLink="preview_cv.php?GUID=".$GUID."&token=".$newTokenGUIDStr;
+                                                                                                        }       else {
+                                                                                                                $domainName=$_SERVER['HTTP_HOST'];
+                                                                                                                $tempLink="https://docs.google.com/viewer?embedded=true&url=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID."%26token=".$newTokenGUIDStr;
+                                                                                                        }
+                                                                                                        echo "<iframe src=\"".$tempLink."\" width=\"98%\" style=\"height:1000px;\"></iframe>";
+                                                                                                }
                         								?>
                         								</div>
                         							</div>
