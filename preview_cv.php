@@ -2,6 +2,7 @@
 require_once("connect.php"); 
 require_once("constants.php");
 require_once("../../private_config/constants.inc.php");
+$delete_auth_token_right_now_bool= isset($_GET['action']) ? $_GET['action'] : false; //this is only used for front-end website to delete token once authenticated to save data from display..
 
 function fetch_postcode($str)	{
 	$returnVal='';
@@ -82,12 +83,16 @@ if(isset($_GET['GUID']) && $_GET['GUID']!="" && isset($_GET['token']) && $_GET['
     			}
     			$formqueryStr.=" where  GUID = '".$_GET['GUID']."'";
     			$db->query($formqueryStr);
+    			
+    			if($delete_auth_token_right_now_bool==true || $delete_auth_token_right_now_bool=="true"){
+    				$db->query("delete from authenticate_tokens where guid = '".$_REQUEST['token']."'");
+    			}
 			}
 	 		header("Content-type: $CVFileType");
        	 	echo $fileContent->zCV;
 		}
 	} else	{
-		echo "Invalid Doc";
+		echo "Invalid Authentication";
 	}
 }	else {
 	echo "Invalid Doc UUID";
