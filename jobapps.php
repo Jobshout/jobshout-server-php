@@ -8,6 +8,14 @@ require_once('include/main-header.php'); ?>
  .custom-combobox-input {
  	width: 200px;
  }
+table{
+  margin: 0 auto;
+  width: 100%;
+  clear: both;
+  border-collapse: collapse;
+  table-layout: fixed; 
+  word-wrap:break-word;
+}
 </style>
 </head>
     <body>

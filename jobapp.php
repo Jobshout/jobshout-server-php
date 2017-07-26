@@ -34,6 +34,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 						
 						$Name = addslashes($_POST["Name"]);
 						$Email = $_POST["Email"];
+						$HomePostcode=$_POST["HomePostcode"];
 						$TelephoneMobile = $_POST["TelephoneMobile"];
 						$Comments = addslashes($_POST["Comments"]);
 						$CV_File_Content = addslashes($_POST["CV_File_Content"]);
@@ -46,7 +47,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 					 if(isset($_GET['GUID']))
 					 {
 					
-					$update = $db->query("UPDATE jobapplications SET  Name = '$Name', SiteID='$site_id', Site_GUID='$site_guid', Email = '$Email', TelephoneMobile = '$TelephoneMobile', Comments = '$Comments', Modified = '$time', CV_File_Content ='$CV_File_Content' where  GUID = '".$_GET['GUID']."'");	
+					$update = $db->query("UPDATE jobapplications SET  Name = '$Name', SiteID='$site_id', Site_GUID='$site_guid', Email = '$Email', TelephoneMobile = '$TelephoneMobile', Comments = '$Comments', Modified = '$time', CV_File_Content ='$CV_File_Content', HomePostcode='$HomePostcode' where  GUID = '".$_GET['GUID']."'");	
 					 
 					 
 					 
@@ -79,7 +80,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 		else {
 				//echo "INSERT INTO jobapplications (GUID, SiteID, Name, Email, TelephoneMobile, Comments, created, modified,SourceSite,Free_Text_Search,CV_File_Content,Rank,SourceType)  VALUES ('$GUID', '$site_id', '$Name', '$Email', '$TelephoneMobile', '$Comments', '$time', '$time', '', '', '', '', '')";
 			$GUID=UniqueGuid('jobapplications', 'GUID');	
-			$insert = $db->query("INSERT INTO jobapplications (GUID, SiteID,Site_GUID, Name, Email, TelephoneMobile, Comments, created, modified,SourceSite,Free_Text_Search,CV_File_Content,Rank,SourceType,HomePostcode,SalaryExpectations)  VALUES ('$GUID', '$site_id','$site_guid', '$Name', '$Email', '$TelephoneMobile', '$Comments', '$time', '$time', '', '', '$CV_File_Content', '', '', '', '')");
+			$insert = $db->query("INSERT INTO jobapplications (GUID, SiteID,Site_GUID, Name, Email, TelephoneMobile, Comments, created, modified,SourceSite,Free_Text_Search,CV_File_Content,Rank,SourceType,HomePostcode,SalaryExpectations)  VALUES ('$GUID', '$site_id','$site_guid', '$Name', '$Email', '$TelephoneMobile', '$Comments', '$time', '$time', '', '', '$CV_File_Content', '', '', '$HomePostcode', '')");
 			
 			if($_FILES['fileinput']['size'] > 0)
 								{
@@ -117,10 +118,10 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=''){
 	 }
 }		
 
-$CV_File_Content=''; $GUID=''; $site_id=''; $Name='';
+$CV_File_Content=''; $GUID=''; $site_id=''; $Name=''; $HomePostcode="";
 $Email=''; $TelephoneMobile=''; $Comments=''; $cv_file=''; $CV_Extracted_Information=""; $CVFileType="";	
 if(isset($_GET['GUID']) && $_GET['GUID']!=""){
-	if($jobApplicationDetails = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content, CV_Extracted_Information, CVFileType FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
+	if($jobApplicationDetails = $db->get_row("SELECT GUID, SiteID, Name, Email, TelephoneMobile, Comments, modified, CVFileName, CV_File_Content, CV_Extracted_Information, CVFileType, HomePostcode FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
 	 	$GUID=$jobApplicationDetails->GUID;
 		$site_id=$jobApplicationDetails->SiteID;
 		$Name=$jobApplicationDetails->Name;
@@ -131,6 +132,7 @@ if(isset($_GET['GUID']) && $_GET['GUID']!=""){
 		$CV_File_Content=$jobApplicationDetails->CV_File_Content;
 		$CV_Extracted_Information=$jobApplicationDetails->CV_Extracted_Information;
 		$CVFileType=$jobApplicationDetails->CVFileType;
+		$HomePostcode=$jobApplicationDetails->HomePostcode;
 	}
 }
 ?>
@@ -168,9 +170,8 @@ width: 99%!important;
 		</li>
 		
 		<?php include_once("include/curr_selection.php"); ?>
-	
 	</ul>
-	<div id="showPrevNext" style="display:none;float: right;position: relative;bottom: 21px;">
+		<div id="showPrevNext" style="display:none;float: right;position: relative;bottom: 21px;">
 			<a href="javascript:void(0)" style="float:left" id="prevBtn" title="Previous"><img src="img/previous.png" alt="< Previous" width="30"/></a>
 			<a href="javascript:void(0)" style="float:right" id="nextBtn"  title="Next" ><img src="img/next.png" alt="Next >" width="30" style="padding-left:5px;"/></a>
 		</div>
@@ -309,7 +310,13 @@ width: 99%!important;
 													<input type="text"  name="TelephoneMobile" id="TelephoneMobile" class="input-xlarge span12" value="<?php echo $TelephoneMobile; ?>">
 													<span>&nbsp;</span>
 												</div></div>
-												
+												<div class="control-group ">
+												<label class="control-label">Postcode</label>
+												<div class="controls text_line">
+													
+													<input type="text"  name="HomePostcode" id="HomePostcode" class="input-xlarge span12" value="<?php echo $HomePostcode; ?>">
+													<span>&nbsp;</span>
+												</div></div>
 												<?php if($cv_file!='') { ?>
 									<div class="control-group ">
 												<label class="control-label">Download Original CV</label>
@@ -378,7 +385,6 @@ width: 99%!important;
                         											$tempLink="preview_cv.php?GUID=".$GUID;
                         										}	else {
                         											$domainName=$_SERVER['HTTP_HOST'];
-                        											//$domainName="www.cvscreen.co.uk";
                         											$tempLink="https://docs.google.com/viewer?embedded=true&url=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID;
                         										}
                         										echo "<iframe src=\"".$tempLink."&token=".$newTokenGUIDStr."\" width=\"98%\" style=\"height:1000px;\"></iframe>";
@@ -388,11 +394,27 @@ width: 99%!important;
                         							</div>
 												</div>
 												<div class="tab-pane" id="tab2">
-													
+													<?php if(isset($CV_Extracted_Information) && $CV_Extracted_Information!=""){
+														$jsonData = json_decode($CV_Extracted_Information);
+															?>
+													<table class='table table-striped table-bordered dataTable no-footer'>
+														<thead><th>Key</th><th>Value</th></thead>
+														<tbody>
+														<?php	foreach($jsonData[0] as $key=>$value)	{
+															if($key<>"" && $key<>"_empty_" && $key<>"file_path" && $key<>"num_words")	{	?>
+															<tr><td><?php echo strtoupper($key); ?></td><td><?php echo $value; ?></td></tr>
+														<?php	}
+															}	?>
+														</tbody>
+													</table>
+													<?php } else	{
+														echo "<div class='alert alert-danger'>Sorry, no information extracted from CV.</div>";
+													}	 ?>
 												</div>
 												<div class="tab-pane" id="tab3">
 													<div class="row-fluid">
                         								<div class="span12">
+                        									<input type="hidden" id="CV_Extracted_Information" value="<?php echo $CV_Extracted_Information; ?>">
 															<textarea name="CV_File_Content" id="CV_File_Content" class="input-xlarge span12" rows="20"><?php echo $CV_File_Content; ?></textarea>
 														</div>
 													</div>
@@ -424,18 +446,30 @@ width: 99%!important;
 		    <script type="text/javascript">
 var nextLink='', previousLink='';
 $(document).keydown(function(e){
-    if (e.keyCode == 37) { 
+	if (e.keyCode == 37) { 
+		$('.prevNxtMsg').remove();
+    
     	if(previousLink!=""){
     		window.location.href=previousLink;
+    	} else {
+    		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more previous record to display.</div>");
     	}
     }if (e.keyCode == 39) { 
+   		$('.prevNxtMsg').remove();
+    
        if(nextLink!=""){
     		window.location.href=nextLink;
+    	} else {
+    		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
     	}
     }
 });				$(document).ready(function(){
+					//expire authenticate tokens
+					$.getJSON("expire_auth_tokens.php",function(response){
+						console.log(response);
+					});
+					
 					fetch_nex_previous();
-					drawExtractedInfo();
 					
 					//* regular validation
 					gebo_validation.reg();
@@ -485,22 +519,7 @@ $(document).keydown(function(e){
 						
 					}
 				};
-function drawExtractedInfo(){
-	var infoStr= '<?php echo $CV_Extracted_Information;?>', tableContent="";
-	if(infoStr!=""){
-		tableContent+="<table class='table table-striped table-bordered dataTable no-footer'>";
-		tableContent+="<th>Key</th><th>Value</th>";
-			
-		var infoObj = JSON.parse(infoStr); 
-		$.each(infoObj, function(index,row){
-			tableContent+="<tr><td>"+index+"</td><td>"+row+"</td></tr>";
-		});
-		tableContent+="</table>";
-	}	else {
-		tableContent+="<div class='alert alert-danger'>Sorry, no information extracted from CV.</div>";
-	}
-	$("#tab2").html(tableContent);
-}
+				
 function fetch_nex_previous(){
 	var oSearch='', currentPage= '<?php echo $GUID; ?>';
 	if(currentPage!=""){
@@ -517,7 +536,7 @@ function fetch_nex_previous(){
 				$.each(response.aaData, function(i,row){
 					createUUIDArr.push(row[6]);
 				});
-				console.log(createUUIDArr)
+				//console.log(createUUIDArr)
 				var totalArrCount=(createUUIDArr.length)-1;
 				var foundPosInArr=createUUIDArr.indexOf(currentPage);
 				if(foundPosInArr==-1){
@@ -542,11 +561,13 @@ function fetch_nex_previous(){
 						$('#prevBtn').attr("href", previousLink);	$('#prevBtn').show();
 					}else{
 						$('#prevBtn').attr("disabled", "disabled");	$('#prevBtn').hide();
+						$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more previous record to display.</div>");
 					}
 					if(nextLink!=""){
 						$('#nextBtn').attr("href", nextLink);	$('#nextBtn').show();
 					}else{
 						$('#nextBtn').attr("disabled", "disabled");	$('#nextBtn').hide();
+						$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
 					}
 				}				
 			}
