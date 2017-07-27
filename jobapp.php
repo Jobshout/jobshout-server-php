@@ -400,11 +400,16 @@ width: 99%!important;
 													<table class='table table-striped table-bordered dataTable no-footer'>
 														<thead><th>Key</th><th>Value</th></thead>
 														<tbody>
-														<?php	foreach($jsonData[0] as $key=>$value)	{
+														<?php	
+														if($jsonData){
+														foreach($jsonData[0] as $key=>$value)	{
 															if($key<>"" && $key<>"_empty_" && $key<>"file_path" && $key<>"num_words")	{	?>
 															<tr><td><?php echo strtoupper($key); ?></td><td><?php echo $value; ?></td></tr>
 														<?php	}
-															}	?>
+															}
+														}	else	{	?>
+															<tr><td>RAW TEXT</td><td><?php echo $CV_Extracted_Information; ?></td></tr>
+														<?php }	?>
 														</tbody>
 													</table>
 													<?php } else	{
