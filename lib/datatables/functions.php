@@ -12,4 +12,9 @@ function set_session_query($page,$queryStr,$total_records_found, $startLimit, $e
 	$_SESSION['last_search'][$page]["start_limit"]=$startLimit;
 	$_SESSION['last_search'][$page]["end_limit"]=$endLimit;
 }	
+
+function set_extra_session_for_table($page,$encodeArr) { 
+	$last_session_activity = json_decode($encodeArr);
+	$_SESSION['last_search'][$page]=$last_session_activity;
+}
 ?>

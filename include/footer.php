@@ -218,7 +218,7 @@
 						fetchuktownsdetails();
 					}
 					if(ele_select.attr('id')=='location'){
-						$('#job_apps').DataTable().ajax.reload();
+						redrawTable();
 					}
 				},
 
@@ -366,7 +366,7 @@
 							fetchuktownsdetails();
 						}
 						if(ele_select.attr('id')=='location'){
-							$('#job_apps').DataTable().ajax.reload();
+							redrawTable();
 						}
 						ele_select.trigger('change');
 

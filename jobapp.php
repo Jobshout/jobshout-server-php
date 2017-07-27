@@ -163,7 +163,7 @@ width: 99%!important;
 			<a href="index.php">Dashboard</a>
 		</li>
 		<li>
-			<a href="jobapps.php">Job Applications</a>
+			<a href="jobapps.php">Back to Job Applications</a>
 		</li>
 		<li>
 			<a href="#">Job Application</a>
@@ -448,6 +448,7 @@ var nextLink='', previousLink='';
 var iTotalRecords= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['total_records'])) { echo $_SESSION['last_search']['jobapplications_query']['total_records']; } else { echo '0'; } ?>;	
 var iDisplayLength= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['end_limit'])) { echo $_SESSION['last_search']['jobapplications_query']['end_limit']; } else { echo '25'; } ?>;
 var iDisplayStart= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['start_limit'])) { echo $_SESSION['last_search']['jobapplications_query']['start_limit']; } else { echo '0'; } ?>;
+var previewErrMsgBool= <?php if(isset($_GET['start']) && ($_GET['start']=="true" || $_GET['start']==true)) { echo '1'; } else { echo '0'; } ?>;
 		
 $(document).keydown(function(e){
 	if (e.keyCode == 37) { 
@@ -527,7 +528,9 @@ $(document).keydown(function(e){
 function more_previous_records(){
 	if(iDisplayStart==0)	{
 		$('#prevBtn').attr("disabled", "disabled");	$('#prevBtn').hide();
-		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more previous record to display.</div>");
+		if(previewErrMsgBool==0 || previewErrMsgBool=="0"){
+			$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more previous record to display.</div>");
+		}
 	} else if(iDisplayStart>=1){
 		if((iDisplayStart-1)>=1){
 			iDisplayStart=iDisplayStart-1;
@@ -541,7 +544,9 @@ function more_next_records(){
 	var endRecordCount=iDisplayStart+iDisplayLength;
 	if(endRecordCount>=iTotalRecords)	{
 		$('#nextBtn').attr("disabled", "disabled");	$('#nextBtn').hide();
-		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
+		if(previewErrMsgBool==0 || previewErrMsgBool=="0"){
+			$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
+		}
 	} else if(endRecordCount<iTotalRecords){
 		if((endRecordCount+1)==iTotalRecords){
 			iDisplayStart=iDisplayStart+1;

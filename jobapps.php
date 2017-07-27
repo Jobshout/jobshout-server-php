@@ -6,7 +6,7 @@ require_once('include/main-header.php'); ?>
   background-color: #3993ba;border-radius: 4px;padding: 5px 4px;margin: 2px;color: #fff;                                                                                                     
  }
  .custom-combobox-input {
- 	width: 200px;
+ 	width: 150px;
  }
 table{
   margin: 0 auto;
@@ -16,7 +16,13 @@ table{
   table-layout: fixed; 
   word-wrap:break-word;
 }
+#appendDomUI {
+  display: inline-block;
+  padding-left: 10px;
+  float: right;
+}
 </style>
+
 </head>
     <body>
 		<div id="maincontainer" class="clearfix">
@@ -55,33 +61,6 @@ table{
                    <div id="validation" ><span style="color:#00CC00;font-size:18px">
                    <?php if(isset($_SESSION['ins_message']) && $_SESSION['ins_message']!=''){ echo $_SESSION['ins_message']; unset($_SESSION['ins_message']); }?>
 					</span></div><br/>
-					
-					<div class="row-fluid">
-						<div class="span12">
-							<div class="span6">
-								<div class="ui-widget" style="float:left;">
-									Location : 
-									<select id="location" placeholder="Enter location or postcode">
-									
-									</select>
-   								</div>
-   								<div style="float:left;margin-left:25px;">
-									<span style="position: relative;bottom: 3px;">Select Radius:</span> <select name="radius" id="radius" onChange="redrawTable(this.value);return false;">
-									<option value="">--Select radius--</option>
-									<option value="1">Within 1 Mile</option>
-									<option value="2">Within 2 Miles</option>
-									<option value="5">Within 5 Miles</option>
-									<option value="15">Within 15 Miles</option>
-									<option value="25">Within 25 Miles</option>
-									<option value="50">Within 50 Miles</option>
-									<option value="100">Within 100 Miles</option>
-								</select>
-								</div>
-							</div>
-							<div class="span6"><button style="float:right;" onClick="previewdisplayedData(); return false;" class="btn btn-gebo">Preview displayed applications</button></div>
-						</div>
-					</div>					
-                    
                     <div class="row-fluid" style="margin-top:2px;">
 						<div class="span12">
 								<table class="table table-striped table-bordered" width="100%" id="job_apps">
@@ -129,7 +108,68 @@ table{
             <script src="lib/datatables/extras/Scroller/media/js/Scroller.min.js"></script>
 			<!-- datatable functions -->
             <script>
-            function redrawTable(val)	{
+            var radiusNum='<?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_radius_search']) && isset($_SESSION['last_search']['jobapplications_radius_search']->radius)) { echo $_SESSION['last_search']['jobapplications_radius_search']->radius; } else { echo ''; } ?>';
+            var locationStr='<?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_radius_search']) && isset($_SESSION['last_search']['jobapplications_radius_search']->location)) { echo $_SESSION['last_search']['jobapplications_radius_search']->location; } else { echo ''; } ?>';
+            	
+            function initialseDataTables () {
+            	datatbles.job_apps();
+            	$(".dataTables_filter input").attr("placeholder", "Search Candidates with Skills...");
+            	//insert the select and some options
+            	
+            	var drawHtml='<div class="ui-widget" style="display: inline-block;">Location: <select id="location" placeholder="Enter location or postcode"></select></div>';
+            	drawHtml+='<div style="display: inline-block;padding-left:20px;padding-right:10px;">with in Radius: <select style="width: 130px;" name="radius" id="radius" onChange="redrawTable();return false;"><option value="">--Select radius--</option>';
+				drawHtml+='<option value="1">Within 1 Mile</option><option value="2">Within 2 Miles</option><option value="5">Within 5 Miles</option><option value="15">Within 15 Miles</option><option value="25">Within 25 Miles</option><option value="50">Within 50 Miles</option><option value="100">Within 100 Miles</option>';
+				drawHtml+='</select></div><a style="display: inline-block;" href="javascript:void(0)" onClick="resetSearch(); return false;" class="btn" title="Reset Search"><i class="icon-refresh"></i></a><a style="display: inline-block;padding-left:10px;" href="javascript:void(0)" onClick="previewdisplayedData(); return false;" class="" title="Preview displayed applications"><img src="img/preview-icon.png" alt="Preview displayed"></a>';
+				$select = $(drawHtml).appendTo('#appendDomUI');
+				var radiusNum='<?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_radius_search']) && isset($_SESSION['last_search']['jobapplications_radius_search']->radius)) { echo $_SESSION['last_search']['jobapplications_radius_search']->radius; } else { echo ''; } ?>';
+            	$('#radius').val(radiusNum);
+            }
+            function resetSearch (){
+            	$("#radius").val('');
+            	$("#location").val('');
+            	radiusNum= ''; locationStr= '';
+				$( "#location" ).combobox('destroy');
+				$( "#location" ).combobox();	//initiale location dropdown
+				$('#job_apps').DataTable().search('').draw();
+            }
+            function fetchLocations() 	{
+            	var htmlStr='<option value=""></option>';
+            	if(locationStr!="")	{
+            		$.getJSON("uktownsautocomplete.php?term="+locationStr,function(result){
+            			if(result.error){
+							//
+						}else {
+							$.each(result, function(i,item){
+								if(item.postcode!=""){
+									htmlStr += '<option value="'+item.postcode+'" selected>'+item.name+'</option>';
+								}
+							});
+						}
+						initialseDataTables();	//initiale datatables
+						$("#location").html(htmlStr);
+						$( "#location" ).combobox();	//initiale location dropdown
+					});
+				}	else	{
+					initialseDataTables();	//initialise datatables on load
+					
+					$.getJSON("uktownsautocomplete.php?forceDisplay=true",function(result){
+            			if(result.error){
+							//
+						}else {
+							$.each(result, function(i,item){
+								if(item.postcode!=""){
+									htmlStr += '<option value="'+item.postcode+'">'+item.name+'</option>';
+								}
+							});
+						}
+						$("#location").html(htmlStr);
+						$( "#location" ).combobox();	//initiale location dropdown
+					});
+				}
+			}
+            function redrawTable()	{
+				radiusNum=$("#radius").val();
+				locationStr=$("#location").val();
 				$('#job_apps').DataTable().ajax.reload();
             }
             function previewdisplayedData(){
@@ -143,10 +183,7 @@ table{
             }
             
 				$(document).ready(function() {
-					datatbles.job_apps();
-					
-					//initiale location dropdown
-					$( "#location" ).combobox();
+					fetchLocations();
 					
 					//expire authenticate tokens
 					$.getJSON("expire_auth_tokens.php",function(response){
@@ -173,18 +210,19 @@ table{
 								"aLengthMenu": [[10, 25, 50, 100, 150, -1], [10, 25, 50, 100, 150,"All"]],
 								"sPaginationType": "bootstrap",
 								"aaSorting": [[ 5, "desc" ]],
-								"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+								"dom":'l<"#appendDomUI">frtip',
+								//"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
 								"sAjaxSource": "lib/datatables/server_jobapps.php",
 								
 									"fnServerParams": function ( aoData ) {
 									<?php if(isset($_GET['job_guid']) && $_GET['job_guid']!='') { ?>
 										aoData.push( { "name": "job_guid", "value": "<?php echo $_GET['job_guid']; ?>" } );
 									<?php } ?>
-									if($('#radius').val()!=""){
-										aoData.push( { "name": "radius", "value": $('#radius').val() } );
+									if(radiusNum!=""){
+										aoData.push( { "name": "radius", "value": radiusNum } );
 									}
-									if($('#location').val()!="" || $('#location').val()!=null){
-										aoData.push( { "name": "location", "value": $('#location').val() } );
+									if(locationStr!="" || locationStr!=null){
+										aoData.push( { "name": "location", "value": locationStr } );
 									}
 									},
 								

@@ -141,13 +141,13 @@ require_once("lib.inc.php");
 		}
 	}
 	$latitude=''; $longitude="";
-	
+	$radius=""; $loc_str="";
 	if(isset($_REQUEST['location']) && $_REQUEST['location']<>'' && $_REQUEST['location']<>'null'){
         $loc_str=addslashes($_REQUEST['location']);
+        
         if(isset($_REQUEST['radius']) && $_REQUEST['radius']<>'' && $_REQUEST['radius']<>'0'){
         	$radius=$_REQUEST['radius'];
         	
-
             $subQuery="SELECT * FROM uk_towns_cities Where postcode='".$_REQUEST['location']."' ";
 			$executeSubQuery = mysql_query( $subQuery, $gaSql['link'] ) or die(mysql_error());
 			if(mysql_num_rows($executeSubQuery)!=0){
@@ -175,7 +175,16 @@ require_once("lib.inc.php");
         	$sWhere .= " and (jobapplications.HomePostcode='".$loc_str."')";
         }
     }
-	
+    if( isset($_GET['repeatQuery']) && $_GET['repeatQuery'] == "yes" ){
+		// dnt change this
+	}else{
+    	/** set raius search results in session	**/
+		$last_session_activity = array(
+			"location" => $loc_str, "radius" => $radius
+		);
+		$sessionEncodedData= json_encode($last_session_activity);
+        set_extra_session_for_table('jobapplications_radius_search',$sessionEncodedData);
+    }
 	/*
 	 * SQL queries
 	 * Get data to display
@@ -333,7 +342,7 @@ require_once("lib.inc.php");
 			}
 		}
 		if($user_access_level>1) {
-			$row[] = '<input type="hidden" class="list_guids" value="'.$curr_id.'"><a href="jobapp.php?GUID='.$curr_id.'" title="Edit this job application" ><i class="splashy-pencil"></i></a>';
+			$row[] = '<input type="hidden" class="list_guids" value="'.$curr_id.'"><a href="jobapp.php?GUID='.$curr_id.'&start=true" title="Edit this job application" ><i class="splashy-pencil"></i></a>';
 			$row[]= '<a href="delete-jobapp.php?GUID='.$curr_id.'" title="Delete this job application" onClick="return confirm(\'Are you sure to delete\');"><i class="splashy-remove"></i></a>';
 		}
 		

@@ -2,7 +2,8 @@
 require_once("connect.php"); 
 require_once("constants.php");
 require_once("../../private_config/constants.inc.php");
-$delete_auth_token_right_now_bool= isset($_GET['action']) ? $_GET['action'] : false; //this is only used for front-end website to delete token once authenticated to save data from display..
+$delete_auth_token_right_now_bool= isset($_GET['r']) ? $_GET['r'] : false; //this is only used for front-end website to delete token once authenticated to save data from display..
+$force_parsing_bool = isset($_GET['reparse']) ? $_GET['reparse'] : false;
 
 function fetch_postcode($str)	{
 	$returnVal='';
@@ -53,7 +54,7 @@ if( (isset($_GET['GUID'])) && ($_GET['GUID'] != "") && (isset($_GET['token'])) &
 			$cv_file=$fileContent->CVFileName;
 			$CVFileType=$fileContent->CVFileType;
 			//PDF type file extract python script
-			if($CVFileType=="application/pdf" && $fileContent->CV_Extracted_Information==""){
+			if($CVFileType=="application/pdf" && ($fileContent->CV_File_Content=="" || $force_parsing_bool==true)){
 				array_map('unlink', glob(DATAINPUTPATH."/*"));	//remove all the files in input directory
 				$outputPathStr=DATAINPUTPATH."/".$_REQUEST['GUID'].".pdf";
     			file_put_contents($outputPathStr,$fileContent->zCV);
@@ -91,7 +92,7 @@ if( (isset($_GET['GUID'])) && ($_GET['GUID'] != "") && (isset($_GET['token'])) &
 			}
 			
 			//DOC/DOCSX type file extract python script
-			if( ($CVFileType=="application/vnd.openxmlformats-officedocument.wordprocessingml.document" || $CVFileType=="application/msword") && $fileContent->CV_Extracted_Information==""){
+			if( ($CVFileType=="application/vnd.openxmlformats-officedocument.wordprocessingml.document" || $CVFileType=="application/msword") && ($fileContent->CV_File_Content=="" || $force_parsing_bool==true)){
 
 				$extension = pathinfo($cv_file, PATHINFO_EXTENSION);
 				$docFileInPathStr=PYTHON_DOCX_PATH.$_REQUEST['GUID'].".".$extension;

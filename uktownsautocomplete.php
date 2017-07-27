@@ -4,6 +4,7 @@ require_once("include/lib.inc.php");
 
 $output=array();
 $term= isset($_GET['term']) ? $_GET['term'] : "";
+$forceDisplayBool= isset($_GET['forceDisplay']) ? $_GET['forceDisplay'] : false;
 
 function findTermsArr($termStr){
 	$termLenthNum= strlen($termStr);
@@ -113,6 +114,27 @@ if($term!=""){
 		$resultData= checkAllPossiblePostcodes($term);
 	}
 	
+	if(count($resultData)>0){
+		foreach($resultData as $row){
+			$subArr=array();
+			$outputVal=$row->name;
+			$postcode ='';
+			if(isset($row->postcode) && $row->postcode!=""){
+				$outputVal.=" (".$row->postcode.")";
+				$postcode = $row->postcode;
+			}
+			$subArr['value']=$row->GUID;
+			$subArr['postcode']=$postcode;
+			$subArr['name']=$outputVal;
+			$output[]=$subArr;
+			
+		}
+	}
+} 
+if($forceDisplayBool==true && $forceDisplayBool=="true"){
+	$db->query('SET NAMES utf8');
+	$resultData=$db->get_results("SELECT * FROM uk_towns_cities ORDER BY name ASC limit 100");
+		
 	if(count($resultData)>0){
 		foreach($resultData as $row){
 			$subArr=array();
