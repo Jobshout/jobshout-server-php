@@ -14,7 +14,7 @@ function fetch_postcode($str)	{
 	return $returnVal;
 }
 
-function return_json_from_csv($fileNameStr){
+function return_json_from_csv($fileNameStr, $parsedPostcode){
 	$outputJson= array(); $keyArr= array(); $rawText=""; $jsonArr= array();
 	$row = 0;
 	if (($fileHandle = fopen($fileNameStr, "r")) !== FALSE) {
@@ -26,6 +26,7 @@ function return_json_from_csv($fileNameStr){
        			}
 	    	} else {
     			$tempArr= array();
+    			$tempArr['postcode']= $parsedPostcode;
     			for ($c=0; $c < $num; $c++) {
     				if($keyArr[$c]=="raw_text"){
     					$rawText= $data[$c];
@@ -67,7 +68,7 @@ if( (isset($_GET['GUID'])) && ($_GET['GUID'] != "") && (isset($_GET['token'])) &
     			//save the csv data in db                                                                                                                                                                                                                                    
    				$CV_File_Content = addslashes($get_cv_content);
     
-    			$extracted_Information=return_json_from_csv(DATAOUTPUTPATH);
+    			$extracted_Information=return_json_from_csv(DATAOUTPUTPATH,$getPostCode);
     			$extracted_InformationArr= json_decode($extracted_Information);
     			if(isset($extracted_InformationArr) && isset($extracted_InformationArr->raw_content) && $extracted_InformationArr->raw_content!=""){
     				$CV_File_Content = addslashes($extracted_InformationArr->raw_content);

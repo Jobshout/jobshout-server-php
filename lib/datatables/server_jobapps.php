@@ -5,8 +5,12 @@ require_once("lib.inc.php");
 	$iDisplayStart = isset($_GET['iDisplayStart']) ? $_GET['iDisplayStart'] : 0;
 	$iDisplayLength = isset($_GET['iDisplayLength']) ? $_GET['iDisplayLength'] : 25;
 	$sSearch = isset($_GET['sSearch']) ? $_GET['sSearch'] : '';
-		
-	$set_session= set_session_values('jobapplications',$sSearch,$iDisplayStart,$iDisplayLength);
+	
+	if( isset($_GET['repeatQuery']) && $_GET['repeatQuery'] == "yes" ){
+		// dnt change this
+	}else{
+		$set_session= set_session_values('jobapplications',$sSearch,$iDisplayStart,$iDisplayLength);
+	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Easy set variables
@@ -178,20 +182,30 @@ require_once("lib.inc.php");
 	 */
 	 $sQuery="";
 	if( isset($_GET['repeatQuery']) && $_GET['repeatQuery'] == "yes" ){
+		$tempTotalRecords=0;
+		
+		if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['total_records'])) { 
+			$tempTotalRecords=$_SESSION['last_search']['jobapplications_query']['total_records'];
+		}
 		if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['sQuery'])) { 
 			$sQuery=  $_SESSION['last_search']['jobapplications_query']['sQuery'];
+			set_session_query('jobapplications_query',$sQuery, $tempTotalRecords, $iDisplayStart, $iDisplayLength);
+			$sQuery.=" LIMIT ".$iDisplayStart.",".$iDisplayLength;
 		}
 	}
 	
+	$mainQuery="";
+	
 	if($sQuery==""){
-		$sQuery = "
+		$mainQuery="
 			SELECT SQL_CALC_FOUND_ROWS ".str_replace(" , ", " ", implode(", ", $aColumns))."
 			FROM   $sTable
 			$sWhere
 			$sOrder
+		";
+		$sQuery = $mainQuery."
 			$sLimit
 		";
-		set_session_query('jobapplications_query',$sQuery, $sOrder);
 	}
 	//echo $sQuery; exit;
 	
@@ -214,7 +228,9 @@ require_once("lib.inc.php");
 	$aResultTotal = mysql_fetch_array($rResultTotal);
 	$iTotal = $aResultTotal[0];
 	
-	
+	if($mainQuery!=""){
+		set_session_query('jobapplications_query',$mainQuery, $iFilteredTotal, $iDisplayStart, $iDisplayLength);
+	}
 	/*
 	 * Output
 	 */
@@ -291,6 +307,7 @@ require_once("lib.inc.php");
 								}
 
                               }
+                             //$tempStr= wordwrap($tempStr,50,"<br>\n");
                             $row[] = $tempStr;
                           }
                           else {

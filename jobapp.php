@@ -445,6 +445,10 @@ width: 99%!important;
             <script src="lib/datepicker/bootstrap-datepicker.min.js"></script>
 		    <script type="text/javascript">
 var nextLink='', previousLink='';
+var iTotalRecords= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['total_records'])) { echo $_SESSION['last_search']['jobapplications_query']['total_records']; } else { echo '0'; } ?>;	
+var iDisplayLength= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['end_limit'])) { echo $_SESSION['last_search']['jobapplications_query']['end_limit']; } else { echo '25'; } ?>;
+var iDisplayStart= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications_query']) && isset($_SESSION['last_search']['jobapplications_query']['start_limit'])) { echo $_SESSION['last_search']['jobapplications_query']['start_limit']; } else { echo '0'; } ?>;
+		
 $(document).keydown(function(e){
 	if (e.keyCode == 37) { 
 		$('.prevNxtMsg').remove();
@@ -520,15 +524,40 @@ $(document).keydown(function(e){
 					}
 				};
 				
+function more_previous_records(){
+	if(iDisplayStart==0)	{
+		$('#prevBtn').attr("disabled", "disabled");	$('#prevBtn').hide();
+		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more previous record to display.</div>");
+	} else if(iDisplayStart>=1){
+		if((iDisplayStart-1)>=1){
+			iDisplayStart=iDisplayStart-1;
+		}	else if((iDisplayStart-1)==0){
+			iDisplayStart=0;
+		}
+		fetch_nex_previous();
+	}
+}
+function more_next_records(){
+	var endRecordCount=iDisplayStart+iDisplayLength;
+	if(endRecordCount>=iTotalRecords)	{
+		$('#nextBtn').attr("disabled", "disabled");	$('#nextBtn').hide();
+		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
+	} else if(endRecordCount<iTotalRecords){
+		if((endRecordCount+1)==iTotalRecords){
+			iDisplayStart=iTotalRecords;
+		}else if((endRecordCount+1)<iTotalRecords){
+			iDisplayStart=iDisplayStart+1;
+		}
+		fetch_nex_previous();
+	}
+}		
 function fetch_nex_previous(){
 	var oSearch='', currentPage= '<?php echo $GUID; ?>';
 	if(currentPage!=""){
 		<?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications']) && isset($_SESSION['last_search']['jobapplications']['sSearch'])) { ?>
 			oSearch= "<?php  echo $_SESSION['last_search']['jobapplications']['sSearch'];  ?>";
 		<?php } ?>
-		var iDisplayLength= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications']) && isset($_SESSION['last_search']['jobapplications']['iDisplayLength'])) { echo $_SESSION['last_search']['jobapplications']['iDisplayLength']; } else { echo '25'; } ?>;
-		var iDisplayStart= <?php if(isset($_SESSION['last_search']) && isset($_SESSION['last_search']['jobapplications']) && isset($_SESSION['last_search']['jobapplications']['iDisplayStart'])) { echo $_SESSION['last_search']['jobapplications']['iDisplayStart']; } else { echo '0'; } ?>;
-								
+							
 		var jsonRow="lib/datatables/server_jobapps.php?repeatQuery=yes&sSearch="+oSearch+"&iDisplayStart="+iDisplayStart+"&iDisplayLength="+iDisplayLength;
 		$.getJSON(jsonRow,function(response){
 			if(response.aaData && response.aaData.length>0){
@@ -543,6 +572,8 @@ function fetch_nex_previous(){
 					$("#showPrevNext").hide();
 				} else{
 					$("#showPrevNext").show();
+					$('#nextBtn').hide();
+					$('#prevBtn').hide();
 					if(foundPosInArr==0){
 						if(totalArrCount>0){
 							previousLink="";
@@ -560,14 +591,12 @@ function fetch_nex_previous(){
 					if(previousLink!=""){
 						$('#prevBtn').attr("href", previousLink);	$('#prevBtn').show();
 					}else{
-						$('#prevBtn').attr("disabled", "disabled");	$('#prevBtn').hide();
-						$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more previous record to display.</div>");
+						more_previous_records();
 					}
 					if(nextLink!=""){
 						$('#nextBtn').attr("href", nextLink);	$('#nextBtn').show();
 					}else{
-						$('#nextBtn').attr("disabled", "disabled");	$('#nextBtn').hide();
-						$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
+						more_next_records();
 					}
 				}				
 			}
