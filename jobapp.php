@@ -544,9 +544,13 @@ function more_next_records(){
 		$("#form1").before("<div class='alert alert-danger prevNxtMsg'>Sorry, no more next record to display.</div>");
 	} else if(endRecordCount<iTotalRecords){
 		if((endRecordCount+1)==iTotalRecords){
-			iDisplayStart=iTotalRecords;
-		}else if((endRecordCount+1)<iTotalRecords){
 			iDisplayStart=iDisplayStart+1;
+		}else if((endRecordCount+1)<iTotalRecords){
+			if((endRecordCount+1)==iTotalRecords){
+				iDisplayStart=iDisplayStart-1;
+			}else{
+				iDisplayStart=iDisplayStart+1;
+			}
 		}
 		fetch_nex_previous();
 	}
