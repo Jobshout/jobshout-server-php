@@ -50,7 +50,7 @@ if( (isset($_GET['GUID'])) && ($_GET['GUID'] != "") && (isset($_GET['token'])) &
 	// added security for authentication
 	$authenticatePage = $db->get_var("SELECT count(*) as num FROM authenticate_tokens where guid = '".$_REQUEST['token']."'");
 	if($authenticatePage>=1){
-		if($fileContent = $db->get_row("SELECT CVFileName, zCV, CVFileType, CV_Extracted_Information FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
+		if($fileContent = $db->get_row("SELECT CVFileName, zCV, CVFileType, CV_File_Content, CV_Extracted_Information FROM jobapplications where GUID = '".$_REQUEST['GUID']."'")){
 			$cv_file=$fileContent->CVFileName;
 			$CVFileType=$fileContent->CVFileType;
 			//PDF type file extract python script
