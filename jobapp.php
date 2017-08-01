@@ -383,7 +383,10 @@ width: 99%!important;
                                                                                                                         if($db->query("INSERT INTO authenticate_tokens (ID, guid, timestamp) VALUES(NULL, '$newTokenGUIDStr', '$timeStampNum')"))       {
                                                                                                         if($CVFileType=="application/pdf") {
                                                                                                                 $tempLink="preview_cv.php?GUID=".$GUID."&token=".$newTokenGUIDStr;
-                                                                                                        }       else {
+                                                                                                        }  elseif($CVFileType=="application/vnd.openxmlformats-officedocument.wordprocessingml.document" || $CVFileType=="application/msword") {
+                                                                                                                $domainName=$_SERVER['HTTP_HOST'];
+                                                                                                                $tempLink="https://view.officeapps.live.com/op/embed.aspx?src=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID."%26token=".$newTokenGUIDStr;
+                                                                                                        }  else {
                                                                                                                 $domainName=$_SERVER['HTTP_HOST'];
                                                                                                                 $tempLink="https://docs.google.com/viewer?embedded=true&url=http://".$domainName."/jobshout/preview_cv.php?GUID=".$GUID."%26token=".$newTokenGUIDStr;
                                                                                                         }
