@@ -238,6 +238,7 @@ require_once("lib.inc.php");
 				}
             }
 			elseif ($aColumns1[$i] == "PageTitle") {
+			elseif ($aColumns1[$i] == "PageTitleZZZ") {
 				if(strlen($aRow[ $aColumns1[$i] ])>30)
 				{
 				$row[] = substr($aRow[ $aColumns1[$i] ],0,30)."...";
